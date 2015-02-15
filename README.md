@@ -44,12 +44,8 @@ This template project prints "Hello, World".
 
 Build and Installation
 ----------------------
-  * Copy `paths.tmpl` to `paths.env`.
-  * Adjust the paths in `paths.env` for your setup.
-  * Source the `paths.env` file to set up your build environment.
-
-        $ source ./paths.env
-
+  * Copy `paths.tmpl` to `paths.inv`.
+  * Adjust the paths in `paths.inv` for your setup.
   * Build:
 
         $ make
