@@ -84,6 +84,7 @@ MODULE_INCDIR	:= $(addsuffix /include,$(INCDIR))
 
 FW_FILE_1	:= $(addprefix $(FW_BASE)/,$(FW_FILE_1).bin)
 FW_FILE_2	:= $(addprefix $(FW_BASE)/,$(FW_FILE_2).bin)
+BLANKER		:= $(addprefix $(SDK_BASE)/,bin/blank.bin)
 
 V ?= $(VERBOSE)
 ifeq ("$(V)","1")
@@ -131,7 +132,11 @@ firmware:
 	$(Q) mkdir -p $@
 
 flash: firmware/0x00000.bin firmware/0x40000.bin
-	-$(ESPTOOL) --port $(ESPPORT) write_flash 0x00000 firmware/0x00000.bin 0x40000 firmware/0x40000.bin
+#	-$(ESPTOOL) --port $(ESPPORT) write_flash 0x00000 firmware/0x00000.bin 0x40000 firmware/0x40000.bin
+	-$(ESPTOOL) --port $(ESPPORT) write_flash \
+	    0x00000 firmware/0x00000.bin \
+	    0x40000 firmware/0x40000.bin
+#	    0x3C000 $(BLANKER) \
 
 clean:
 	$(Q) rm -f $(APP_AR)
