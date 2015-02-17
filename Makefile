@@ -1,13 +1,14 @@
 #
 # Makefile for sample app
 #
+
 # Output directories to store intermediate compiled files
 # relative to the project directory
 BUILD_BASE	= build
 FW_BASE		= firmware
 
 # paths.inc can over-ride the tool settings below. It must exist, but
-# may be empty.
+# may be empty if the defaults below are correct.
 include paths.inc
 
 # Base directory for the compiler
@@ -28,7 +29,7 @@ TARGET		= app
 
 # which modules (subdirectories) of the project to include in compiling
 MODULES		= driver user
-EXTRA_INCDIR    = include /opt/esp-open-sdk/sdk/include
+EXTRA_INCDIR    = include $(SDK_BASE)/include
 
 # libraries used in this project, mainly provided by the SDK
 LIBS		= c gcc hal pp phy net80211 lwip wpa main
