@@ -6,6 +6,10 @@ basic pieces are here to get you started.
 You can build appTemplate and flash it to an ESP8266 ESP-01. It will print
 'Hello World', at 115200 baud, out the ESP-01 serial port.
 
+Prerequisits
+------------
+  * https://github.com/pfalcon/esp-open-sdk
+
 Build and Install
 ----------------------
   * Copy `paths.tmpl` to `paths.inv`.
