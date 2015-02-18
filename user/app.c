@@ -19,6 +19,7 @@ static void ICACHE_FLASH_ATTR
 loop(os_event_t *events)
 {
     os_printf("Hello, World\n\r");
+    uart0_sendStr("Hello again\n\r");
     os_delay_us(1000000);
     system_os_post(user_procTaskPrio, 0, 0 );
 }
