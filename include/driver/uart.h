@@ -1,7 +1,12 @@
 /*
- * File	: uart.h
+ * File : uart.h
  * This file is part of Espressif's AT+ command set program.
  * Copyright (C) 2013 - 2016, Espressif Systems
+ *
+ * It has been modified to support only the single uart available on the
+ * ESP-01 board.
+ *
+ * Modifications Copyright 2015 Jerry Dunmire
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of version 3 of the GNU General Public License as
@@ -99,20 +104,20 @@ typedef enum {
 } RcvMsgState;
 
 typedef struct {
-    UartBautRate 	     baut_rate;
+    UartBautRate      baut_rate;
     UartBitsNum4Char  data_bits;
-    UartExistParity      exist_parity;
-    UartParityMode 	    parity;    // chip size in byte
+    UartExistParity   exist_parity;
+    UartParityMode    parity;    // chip size in byte
     UartStopBitsNum   stop_bits;
-    UartFlowCtrl         flow_ctrl;
-    RcvMsgBuff          rcv_buff;
-    TrxMsgBuff           trx_buff;
-    RcvMsgState        rcv_state;
-    int                      received;
-    int                      buff_uart_no;  //indicate which uart use tx/rx buffer
+    UartFlowCtrl      flow_ctrl;
+    RcvMsgBuff        rcv_buff;
+    TrxMsgBuff        trx_buff;
+    RcvMsgState       rcv_state;
+    int               received;
+    int               buff_uart_no;  //indicate which uart use tx/rx buffer
 } UartDevice;
 
-void uart_init(UartBautRate uart0_br, UartBautRate uart1_br);
+void uart_init(UartBautRate uart0_br);
 void uart0_sendStr(const char *str);
 
 #endif

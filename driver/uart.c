@@ -1,7 +1,12 @@
 /*
  * File	: uart.c
- * This file is part of Espressif's AT+ command set program.
+ * This is part of Espressif's AT+ command set program.
  * Copyright (C) 2013 - 2016, Espressif Systems
+ *
+ * It has been modified for more specific use with the ESP-01 which
+ * makes only uart0 available.
+ *
+ * Modifications Copyright 2015 Jerry Dunmire
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of version 3 of the GNU General Public License as
@@ -20,8 +25,6 @@
 #include "driver/uart.h"
 #include "osapi.h"
 #include "driver/uart_register.h"
-//#include "ssc.h"
-#include "at.h"
 
 // UartDev is defined and initialized in rom code.
 extern UartDevice    UartDev;
@@ -32,8 +35,8 @@ LOCAL void uart0_rx_intr_handler(void *para);
 /******************************************************************************
  * FunctionName : uart_config
  * Description  : Internal used function
- *                UART0 used for data TX/RX, RX buffer size is 0x100, interrupt enabled
- *                UART1 just used for debug output
+ *                UART0 used for data TX/RX, RX buffer size is 0x100,
+ *                interrupt enabled.
  * Parameters   : uart_no, use UART0 or UART1 defined ahead
  * Returns      : NONE
 *******************************************************************************/
@@ -94,9 +97,9 @@ uart_config(uint8 uart_no)
 }
 
 /******************************************************************************
- * FunctionName : uart1_tx_one_char
+ * FunctionName : uart_tx_one_char
  * Description  : Internal used function
- *                Use uart1 interface to transfer one char
+ * Parameters   : uint8 uart - UART0 or UART1
  * Parameters   : uint8 TxChar - character to tx
  * Returns      : OK
 *******************************************************************************/
@@ -116,26 +119,26 @@ uart_tx_one_char(uint8 uart, uint8 TxChar)
 }
 
 /******************************************************************************
- * FunctionName : uart1_write_char
+ * FunctionName : uart0_write_char
  * Description  : Internal used function
  *                Do some special deal while tx char is '\r' or '\n'
  * Parameters   : char c - character to tx
  * Returns      : NONE
 *******************************************************************************/
 LOCAL void ICACHE_FLASH_ATTR
-uart1_write_char(char c)
+uart0_write_char(char c)
 {
   if (c == '\n')
   {
-    uart_tx_one_char(UART1, '\r');
-    uart_tx_one_char(UART1, '\n');
+    uart_tx_one_char(UART0, '\r');
+    uart_tx_one_char(UART0, '\n');
   }
   else if (c == '\r')
   {
   }
   else
   {
-    uart_tx_one_char(UART1, c);
+    uart_tx_one_char(UART0, c);
   }
 }
 /******************************************************************************
@@ -166,10 +169,10 @@ uart0_tx_buffer(uint8 *buf, uint16 len)
 void ICACHE_FLASH_ATTR
 uart0_sendStr(const char *str)
 {
-	while(*str)
-	{
-		uart_tx_one_char(UART0, *str++);
-	}
+  while(*str)
+  {
+    uart_tx_one_char(UART0, *str++);
+  }
 }
 
 /******************************************************************************
@@ -184,9 +187,9 @@ uart0_sendStr(const char *str)
 LOCAL void
 uart0_rx_intr_handler(void *para)
 {
-  /* uart0 and uart1 intr combine togther, when interrupt occur, see reg 0x3ff20020, bit2, bit0 represents
-    * uart1 and uart0 respectively
-    */
+  /* uart0 and uart1 intr combine togther, when interrupt occur, see reg
+   * 0x3ff20020, bit2, bit0 represents uart1 and uart0 respectively
+   */
 //  RcvMsgBuff *pRxBuff = (RcvMsgBuff *)para;
   uint8 RcvChar;
   uint8 uart_no = UART0;//UartDev.buff_uart_no;
@@ -213,7 +216,7 @@ uart0_rx_intr_handler(void *para)
 //    os_printf("fifo full\r\n");
     ETS_UART_INTR_DISABLE();/////////
 
-    system_os_post(at_recvTaskPrio, 0, 0);
+    //system_os_post(at_recvTaskPrio, 0, 0);
 
 //    WRITE_PERI_REG(UART_INT_CLR(uart_no), UART_RXFIFO_FULL_INT_CLR);
 //    while (READ_PERI_REG(UART_STATUS(uart_no)) & (UART_RXFIFO_CNT << UART_RXFIFO_CNT_S))
@@ -228,7 +231,7 @@ uart0_rx_intr_handler(void *para)
     ETS_UART_INTR_DISABLE();/////////
 
 //    os_printf("stat:%02X",*(uint8 *)UART_INT_ENA(uart_no));
-    system_os_post(at_recvTaskPrio, 0, 0);
+    //system_os_post(at_recvTaskPrio, 0, 0);
 
 //    WRITE_PERI_REG(UART_INT_CLR(uart_no), UART_RXFIFO_TOUT_INT_CLR);
 ////    os_printf("rx time over\r\n");
@@ -271,27 +274,23 @@ uart0_rx_intr_handler(void *para)
  * FunctionName : uart_init
  * Description  : user interface for init uart
  * Parameters   : UartBautRate uart0_br - uart0 bautrate
- *                UartBautRate uart1_br - uart1 bautrate
  * Returns      : NONE
 *******************************************************************************/
 void ICACHE_FLASH_ATTR
-uart_init(UartBautRate uart0_br, UartBautRate uart1_br)
+uart_init(UartBautRate uart0_br)
 {
-  // rom use 74880 baut_rate, here reinitialize
   UartDev.baut_rate = uart0_br;
   uart_config(UART0);
-  UartDev.baut_rate = uart1_br;
-  uart_config(UART1);
   ETS_UART_INTR_ENABLE();
 
-  // install uart1 putc callback
-  os_install_putc1((void *)uart1_write_char);
+  // install uart0 putc callback
+  os_install_putc1((void *)uart0_write_char);
 }
 
 void ICACHE_FLASH_ATTR
 uart_reattach()
 {
-	uart_init(BIT_RATE_74880, BIT_RATE_74880);
+  uart_init(BIT_RATE_115200);
 //  ETS_UART_INTR_ATTACH(uart_rx_intr_handler_ssc,  &(UartDev.rcv_buff));
 //  ETS_UART_INTR_ENABLE();
 }
