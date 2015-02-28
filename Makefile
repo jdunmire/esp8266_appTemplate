@@ -9,7 +9,9 @@ FW_BASE		= firmware
 
 # paths.inc can over-ride the tool settings below. It must exist, but
 # may be empty if the defaults below are correct.
-include paths.inc
+ifneq "$(MAKECMDGOALS)" "clean"
+    include paths.inc
+endif
 
 # Base directory for the compiler
 XTENSA_TOOLS_ROOT ?= /opt/esp-open-sdk/xtensa-lx106-elf/bin
@@ -73,6 +75,7 @@ SDK_INCDIR	:= $(addprefix -I$(SDK_BASE)/,$(SDK_INCDIR))
 
 SRC		:= $(foreach sdir,$(SRC_DIR),$(wildcard $(sdir)/*.c))
 OBJ		:= $(patsubst %.c,$(BUILD_BASE)/%.o,$(SRC))
+DEPS		:= $(patsubst %.o,%.d,$(OBJ))
 LIBS		:= $(addprefix -l,$(LIBS))
 APP_AR		:= $(addprefix $(BUILD_BASE)/,$(TARGET)_app.a)
 TARGET_OUT	:= $(addprefix $(BUILD_BASE)/,$(TARGET).out)
@@ -102,6 +105,8 @@ define compile-objects
 $1/%.o: %.c
 	$(vecho) "CC $$<"
 	$(Q) $(CC) $(INCDIR) $(MODULE_INCDIR) $(EXTRA_INCDIR) $(SDK_INCDIR) $(CFLAGS)  -c $$< -o $$@
+#	$(vecho) "makedepend $$<"
+	$(Q) $(CC) -MM -MF $$(subst .o,.d,$$@) -MP -MT $$@ $(CFLAGS) $(INCDIR) $(MODULE_INCDIR) $(EXTRA_INCDIR) $(SDK_INCDIR) $$<
 endef
 
 .PHONY: all checkdirs flash clean
@@ -153,7 +158,11 @@ clean:
 $(foreach bdir,$(BUILD_DIR),$(eval $(call compile-objects,$(bdir))))
 
 paths.inc: paths.tmpl
-	@echo "paths.inc is missing or older than paths.tmpl."
-	@echo "Copy paths.tmpl to paths.inc and modify the settings"
-	@echo "for your environment."
-	exit 1
+	@echo "ERROR: paths.inc is missing or older than paths.tmpl."
+	@echo "       Copy paths.tmpl to paths.inc and modify the settings"
+	@echo "       for your environment."
+	$(Q) exit 1
+
+ifneq "$(MAKECMDGOALS)" "clean"
+    -include $(DEPS)
+endif
