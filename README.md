@@ -12,8 +12,8 @@ Prerequisits
 
 Build and Install
 ----------------------
-  * Copy `paths.tmpl` to `paths.inv`.
-  * Adjust the paths in `paths.inv` for your setup.
+  * Copy `paths.tmpl` to `paths.inc`.
+  * Adjust the paths in `paths.inc` for your setup.
   * Build:
 
         $ make
